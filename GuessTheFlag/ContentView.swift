@@ -11,15 +11,17 @@ struct ContentView: View {
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Spain", "UK", "Ukraine", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
     @State private var showingScore = false
-    @State private var score: Int = 0
+    @State private var gameOver = false
+    @State private var score = 0
     @State private var scoreTitle = ""
+    @State private var questionsAsked = 0
     
     var body: some View {
         ZStack {
             RadialGradient(stops: [
-                .init(color: Color(red: 0.1, green: 0.2, blue: 0.45), location: 0.3),
-                .init(color: Color(red: 0.76, green: 0.15, blue: 0.26), location: 0.3),
-            ], center: .top, startRadius: 200, endRadius: 400)
+                .init(color: Color(hue: 0.51, saturation: 0.20, brightness: 0.36), location: 0.3),
+                .init(color: Color(hue: 0.13, saturation: 0.53, brightness: 0.81), location: 0.3),
+            ], center: .bottom, startRadius: 50, endRadius: 400)
                 .ignoresSafeArea()
             
             VStack {
@@ -65,11 +67,12 @@ struct ContentView: View {
         } message: {
             Text("Your score is \(score)")
         }
-    }
-    
-    func askQuestion() {
-        countries.shuffle()
-        correctAnswer = Int.random(in: 0...2)
+        
+        .alert(scoreTitle, isPresented: $gameOver) {
+            Button("Reset Game", action: resetGame)
+        } message: {
+            Text("Your score is \(score). Reset the game to try again!")
+        }
     }
     
     func flagTapped(_ number: Int) {
@@ -77,9 +80,33 @@ struct ContentView: View {
             score += 1
             scoreTitle = "Correct"
         } else {
-            scoreTitle = "Wrong"
+            scoreTitle = "Wrong! That's the flag of \(countries[number])"
         }
         showingScore = true
+    }
+    
+    func askQuestion() {
+        if questionsAsked == 7 {
+            gameOver = true;
+            if score > 5 {
+                scoreTitle = "Great job!"
+            } else {
+                scoreTitle = "Game over!"
+            }
+            return
+        }
+        questionsAsked += 1
+        countries.shuffle()
+        correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func resetGame() {
+        scoreTitle = ""
+        score = 0
+        questionsAsked = 0
+        gameOver = false
+        showingScore = false
+        askQuestion()
     }
 }
 
